@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - xmoel trade</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="dashboard-nav">
+    <h2>xmoel trade Dashboard</h2>
+  </nav>
+  <main class="dashboard-container">
+    <section class="status">
+      <h3>Status Bot: <span id="botStatus">Loading...</span></h3>
+      <button onclick="toggleBot()">Toggle Bot</button>
+    </section>
+
+    <section class="stats">
+      <h3>Profit / Loss</h3>
+      <div id="statsContent">Loading...</div>
+    </section>
+
+    <section class="strategies">
+      <h3>Pilih Strategi</h3>
+      <select id="strategySelect"></select>
+    </section>
+
+    <section class="connect">
+      <h3>Integrasi OKX</h3>
+      <button onclick="connectOKX()">Hubungkan API OKX</button>
+    </section>
+
+    <section class="logs">
+      <h3>Log Aktivitas</h3>
+      <ul id="logList">Loading...</ul>
+    </section>
+  </main>
+
+  <script>
+    async function loadDashboard() {
+      const status = await fetch('/api/status').then(res => res.json());
+      document.getElementById("botStatus").textContent = status.active ? "ON" : "OFF";
+
+      const stats = await fetch('/api/stats').then(res => res.json());
+      document.getElementById("statsContent").textContent = `Profit: $${stats.profit}, Loss: $${stats.loss}`;
+
+      const strategies = await fetch('/api/strategies').then(res => res.json());
+      const select = document.getElementById("strategySelect");
+      strategies.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s.id;
+        opt.textContent = s.name;
+        select.appendChild(opt);
+      });
+
+      const logs = await fetch('/api/logs').then(res => res.json());
+      const logList = document.getElementById("logList");
+      logs.forEach(log => {
+        const li = document.createElement("li");
+        li.textContent = log.message;
+        logList.appendChild(li);
+      });
+    }
+
+    function toggleBot() {
+      fetch('/api/status/toggle', { method: 'POST' })
+        .then(() => loadDashboard());
+    }
+
+    function connectOKX() {
+      fetch('/api/connect-okx', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => alert(data.message));
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
